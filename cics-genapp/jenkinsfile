@@ -1,6 +1,6 @@
 // Agent labels
 def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'SC47-agent'
-def linuxAgent = ''
+def linuxAgent = 'master'
 
 // GIT repositories
 def srcGitRepo =  'git@github.ibm.com:Jt-atkins/GenappML.git'
@@ -44,9 +44,9 @@ def buildVerbose = ''
 
 pipeline {
 
+    agent { label linuxAgent }
 
-
-            agent { label zOsAgentLabel }
+    options { skipDefaultCheckout(true) }
 
     stages {
         
