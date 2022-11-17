@@ -75,7 +75,7 @@ pipeline {
                         srcGitRepo = scm.getUserRemoteConfigs()[0].getUrl()
                         srcGitBranch = scm.branches[0].name
                         def scmVars = null
-                        scmVars = checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
+                        scmVars = checkout([$class: 'Git-USS-SC47', branches: [[name: srcGitBranch]],
                                                 doGenerateSubmoduleConfigurations: false,
                                                 extensions: [
                                                 [$class: 'SparseCheckoutPaths',
@@ -91,7 +91,7 @@ pipeline {
                     dir("dbb-zappbuild") {
                         sh(script: 'rm -f .git/info/sparse-checkout', returnStdout: true)
                         def scmVars =
-                            checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
+                            checkout([$class: 'Git-USS-SC47', branches: [[name: zAppBuildGitBranch]],
                               doGenerateSubmoduleConfigurations: false,
                               submoduleCfg: [],
                             userRemoteConfigs: [[
@@ -102,7 +102,7 @@ pipeline {
                     dir("dbb") {
                         sh(script: 'rm -f .git/info/sparse-checkout', returnStdout: true)
                         def scmVars =
-                            checkout([$class: 'GitSCM', branches: [[name: dbbGitBranch]],
+                            checkout([$class: 'Git-USS-SC47', branches: [[name: dbbGitBranch]],
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [
                                        [$class: 'SparseCheckoutPaths',  sparseCheckoutPaths:[
