@@ -1,13 +1,13 @@
 // Agent labels
 def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'SC47-agent'
-def linuxAgent = 'master'
+// def linuxAgent = 'master'
 
 // GIT repositories
 def srcGitRepo =  'git@github.ibm.com:Jt-atkins/GenappML.git'
 def srcGitBranch = 'BH-release-group'
 def zAppBuildGitRepo = 'git@github.ibm.com:Jt-atkins/Jt-atkins-dbb-zappbuild1.git'
 def zAppBuildGitBranch = 'main'
-// def dbbGitRepo = 'https://github.com/IBM/dbb.git'
+def dbbGitRepo = 'https://github.com/IBM/dbb.git'
 def dbbGitBranch = 'main'
 
 // DBB
@@ -44,7 +44,7 @@ def buildVerbose = ''
 
 pipeline {
 
-    agent { label linuxAgent }
+    agent { label zOsAgentLabel }
 
     options { skipDefaultCheckout(true) }
 
