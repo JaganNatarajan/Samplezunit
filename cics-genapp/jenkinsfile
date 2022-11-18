@@ -76,7 +76,7 @@ pipeline {
                                                    path:'cics-genapp/']]]
                                                 ],
                                                 submoduleCfg: [],
-                                                userRemoteConfigs: [[credentialsId: '	SC47-agent-pass',
+                                                userRemoteConfigs: [[credentialsId: 'SC47SSH',
                                                                      url: srcGitRepo,
                                                                      ]]])
                     }
