@@ -11,9 +11,9 @@ def dbbGitRepo = 'https://github.com/IBM/dbb.git'
 def dbbGitBranch = 'main'
 
 // DBB
-def dbbHome=null
-def dbbUrl=null
-def dbbHlq=null
+def dbbHome=/u/DMJTA1/dbb113
+def dbbUrl=https://9.76.61.221:9443/dbb/rest
+def dbbHlq=DMJTA1
 def dbbBuildType='-i'
 def dbbGroovyzOpts= ''
 def dbbBuildExtraOpts= ''
