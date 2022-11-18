@@ -44,9 +44,9 @@ def buildVerbose = ''
 
 pipeline {
 
-    agent { label linuxAgent }
+    agent { label zOsAgentLabel }
 
-    options { skipDefaultCheckout(true) }
+    
 
     stages {
         
