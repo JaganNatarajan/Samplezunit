@@ -87,7 +87,7 @@ pipeline {
                             checkout([$class: 'GitSCM', branches: [[name: zAppBuildGitBranch]],
                               doGenerateSubmoduleConfigurations: false,
                               submoduleCfg: [],
-                            userRemoteConfigs: [[
+                            userRemoteConfigs: [[credentialsId: 'SC47SSH'
                                 url: zAppBuildGitRepo,
                             ]]])
                     }
