@@ -61,14 +61,7 @@ pipeline {
                         echo sh(script: 'env|sort', returnStdout: true)
                     }
                     
-                    if ( env.DBB_HOME == null )
-                        error("DBB_HOME is not defined !!!")
-                    if ( env.DBB_URL == null )
-                        error("DBB_URL is not defined !!!")
-                    if ( env.DBB_HLQ == null )
-                        error("DBB_HLQ is not defined !!!")
-                    if ( env.UCD_BUZTOOL_PATH == null )
-                        error("UCD_BUZTOOL_PATH is not defined !!!")
+
                     
                     dir('cics-genapp') {
                         sh(script: 'rm -f .git/info/sparse-checkout', returnStdout: true)
