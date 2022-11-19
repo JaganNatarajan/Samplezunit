@@ -103,7 +103,7 @@ pipeline {
 				}
 			}
 		}
-        stage('Git Clone/Refresh zAppBuild') {
+        stage('Git Clone/Refresh dbb scripts') {
             steps {
                 script {                    
                     dir("dbb") {
