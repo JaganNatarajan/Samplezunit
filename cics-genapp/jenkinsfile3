@@ -1,56 +1,136 @@
-//Global vars
+def zOsAgentLabel = env.ZOS_AGENT_LABEL ? env.ZOS_AGENT_LABEL : 'SC47-agent'
 
-def gitCredId = 'drice-us'
+// GIT repositories
+def srcGitRepo =  'git@github.ibm.com:Jt-atkins/GenappML.git'
+def srcBuildRepo =  'git@github.ibm.com:Jt-atkins/Jt-atkins-dbb-zappbuild1.git'
+def srcGitBranch = 'BH-release-group'
+def zAppbuildGitBranch = 'main' 
 
-//def dbbZappbuildBranch='development-aug2020-ztec201-zunit-test'
-def dbbZappbuildBranch='master'
-def dbbZappbuildDir = 'dbb-zappbuild'
 
-def genappBranch = 'master'
-def genappDir = 'genapp'
+// DBB
+def dbbHome='/u/DMJTA1/dbb113'
+def dbbUrl1='https://9.76.61.221:9445/dbb'
+def dbbHlq='DMJTA1.APP'
+// def dbbBuildType='scanSource'
+def dbbGroovyzOpts= ''
+def dbbBuildExtraOpts= ''
 
-node (label: 'SC47-agent') {
-    
+// UCD
+def ucdApplication = 'GenApp-Deploy'
+def ucdProcess = 'Deploy'
+def ucdComponent = 'GenAppComponent'
+def ucdAPIComponent1 = 'Genapp.Customer.API.InquireCustomer'
+def ucdEnv = 'Test'
+def ucdSite = 'UCD Test Server'
+def buztoolLocation = '/var/ucdagent/v705/bin/buztool.sh'
+
+
+// Verbose
+def verbose = env.VERBOSE && env.VERBOSE == 'true' ? true : false
+
+// Private
+def hasBuildFiles = true
+def buildVerbose = verbose ? '-v' : ''
+
+// Groovyz
+def groovyz = '/u/DMJTA1/dbb113/bin/groovyz'
+// def zAppBuild = '/u/DMJTA1/zAppBuild/test/Jt-atkins-dbb-zappbuild1'
+def zAppBuild =  '${WORKSPACE}/zAppBuild
+ 
+def zApp = 'cics-genapp'
+def BuildType = 'impactBuild'
+/*
+parameters {
+		string (
+			name: 'srcGitBranch',
+			defaultValue: 'Hotfix release group branch name',
+			description: 'Enter the hotfix release group branch name'
+        )
+    }
+*/
+node (label: zOsAgentLabel ) {
+
     def workOutoutDir = "${WORKSPACE}/work"
-    
+
     stage ('Cleanup') {
-        // rm 
+        // rm
         dir("${WORKSPACE}/work"){deleteDir()}
     }
-    
+
 	stage('Git Checkout') {
-
-		dir (dbbZappbuildDir) {
-			//checkout([$class: 'GitSCM', branches: [[name: dbbZappbuildBranch]], doGenerateSubmoduleConfigurations: false, submoduleCfg: [], userRemoteConfigs: [[credentialsId: gitCredId, url: 'git@github.ibm.com:zDevOps-Acceleration/dbb-zappbuild.git']]])
-			checkout([$class: 'GitSCM', branches: [[name: 'db2BindBuildReportRecord']], doGenerateSubmoduleConfigurations: false, submoduleCfg: [], userRemoteConfigs: [[credentialsId: gitCredId, url: 'git@github.com:dennis-behm/dbb-zappbuild.git']]])
-
-		}
-        dir (genappDir) {
-			checkout([$class: 'GitSCM', branches: [[name: genappBranch]], doGenerateSubmoduleConfigurations: false, submoduleCfg: [], userRemoteConfigs: [[credentialsId: gitCredId, url: 'git@github.ibm.com:zDevOps-Acceleration/genapp.git']]])
-		}
+		dir("cics-genapp") {
+                    sh(script: 'rm -f .git/info/sparse-checkout', returnStdout: true)
+                        def scmVars =
+                            checkout([$class: 'GitSCM', branches: [[name: srcGitBranch]],
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions: [
+                                       [$class: 'SparseCheckoutPaths',  sparseCheckoutPaths:[[$class:'SparseCheckoutPath', path:'cics-genapp/']]]
+                                    ],
+                              submoduleCfg: [],
+                            userRemoteConfigs: [[credentialsId: 'SC47SSH', 
+                                url: srcGitRepo,
+                            ]]])
+                    }
 	}
-    
-	stage("Build & UnitTest") {
-	    // -Dlog4j.configurationFile=file:/var/dbb/v1.0.9.ifix1/conf/log4j2.properties
+	stage('zAppBuild Checkout') {
+		dir("zAppBuild") {
+                    sh(script: 'rm -f .git/info/sparse-checkout', returnStdout: true)
+                        def scmVars =
+                            checkout([$class: 'GitSCM', branches: [[name: zAppbuildGitBranch]],
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions: [
+                                       [$class: 'SparseCheckoutPaths',  sparseCheckoutPaths:[[$class:'SparseCheckoutPath', path:'zAppBuild/']]]
+                                    ],
+                              submoduleCfg: [],
+                            userRemoteConfigs: [[credentialsId: 'SC47SSH', 
+                                url: srcBuildRepo,
+                            ]]])
+                    }
+	}
 
-	  
-	    sh "/usr/lpp/dbb/v1r0/bin/groovyz ${dbbZappbuildDir}/build.groovy --sourceDir ${WORKSPACE}/${genappDir} --workDir ${workOutoutDir} --hlq JENKINS.ZDAT.GENAPP --logEncoding UTF-8 --application genapp --runzTests --verbose --impactBuild --propFiles /var/dbb/dbb-zappbuild-config/build.properties,/var/dbb/dbb-zappbuild-config/datasets.properties,/var/dbb/dbb-zappbuild-config/test.properties"
+stage("Build & Test") {
 
-		// some test
-	    //sh "/usr/lpp/dbb/v1r0/bin/groovyz /u/dbehm/test/dbb-zappbuild/build.groovy --sourceDir ${WORKSPACE}/${genappDir} --workDir ${workOutoutDir} --hlq JENKINS.ZDAT.GENAPP --logEncoding UTF-8 --application genapp --runzTests --verbose --impactBuild --propFiles /var/dbb/dbb-zappbuild-config/build.properties,/var/dbb/dbb-zappbuild-config/datasets.properties,/var/dbb/dbb-zappbuild-config/test.properties"
-
-		
-		sh "Xalan -o ${WORKSPACE}/work/junit.xml ${WORKSPACE}/work/*/*.zunit.report.log /var/dbb/extensions/zunit2junit/AZUZ2J30.xsl"
-		
-		dir ("${WORKSPACE}/work") {
-	    archiveArtifacts allowEmptyArchive: true, 
-											artifacts: '*/*.log,*.log,*/*.json,*/*.html',  
-											excludes: '*clist', 
-											onlyIfSuccessful: false
+	    sh "${groovyz}  ${zAppBuild}/build.groovy --workspace ${WORKSPACE}/cics-genapp --hlq DMJTA1.APP --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER} --application ${zApp} --logEncoding UTF-8 --${BuildType}  --verbose"
 	    
-	    junit 'junit.xml'
-		    
-		}
+	    //calculating the Buildoutput folder name
+	    
+	    BUILD_OUTPUT_FOLDER = sh (script: "ls ${WORKSPACE}/BUILD-${BUILD_NUMBER}", returnStdout: true).trim()
 		
-	}	
+		dir ("${WORKSPACE}/BUILD-${BUILD_NUMBER}/${BUILD_OUTPUT_FOLDER}") {
+	    archiveArtifacts allowEmptyArchive: true,
+											artifacts: '**/*',
+											excludes: '*clist',
+											onlyIfSuccessful: false
+	    }
+	    
+        stage("Package") {
+        sh "/u/DMJTA1/dbb113/bin/groovyz /u/DMJTA1/zAppBuild/test/Jt-atkins-dbb-zappbuild1/dbb-ucd-packaging.groovy --buztool ${buztoolLocation} --workDir ${WORKSPACE}/BUILD-${BUILD_NUMBER}/${BUILD_OUTPUT_FOLDER} --component ${ucdComponent} --versionName releaseML.candidate.${BUILD_NUMBER}"
+
+		dir ("${WORKSPACE}/BUILD-${BUILD_NUMBER}/${BUILD_OUTPUT_FOLDER}") {
+	    archiveArtifacts allowEmptyArchive: true,
+											artifacts: '**/*',
+											excludes: '*clist',
+											onlyIfSuccessful: false
+	    }
+    }
+        stage('UCD Deploy') {
+                script{
+                    if ( hasBuildFiles ) {
+                        script{
+                            step(
+                                  [$class: 'UCDeployPublisher',
+                                    deploy: [
+                                        deployApp: ucdApplication,
+                                        deployDesc: 'Requested from Jenkins',
+                                        deployEnv: ucdEnv,
+                                        deployOnlyChanged: false,
+                                        deployProc: ucdProcess,
+                                        deployVersions: "${ucdComponent}:latest \n${ucdAPIComponent1}:latest"],
+                                    siteName: ucdSite])
+                        }
+                    }
+                }
+        }
+		
+	}
 }
