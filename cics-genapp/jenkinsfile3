@@ -1,0 +1,56 @@
+//Global vars
+
+def gitCredId = 'drice-us'
+
+//def dbbZappbuildBranch='development-aug2020-ztec201-zunit-test'
+def dbbZappbuildBranch='master'
+def dbbZappbuildDir = 'dbb-zappbuild'
+
+def genappBranch = 'master'
+def genappDir = 'genapp'
+
+node (label: 'SC47-agent') {
+    
+    def workOutoutDir = "${WORKSPACE}/work"
+    
+    stage ('Cleanup') {
+        // rm 
+        dir("${WORKSPACE}/work"){deleteDir()}
+    }
+    
+	stage('Git Checkout') {
+
+		dir (dbbZappbuildDir) {
+			//checkout([$class: 'GitSCM', branches: [[name: dbbZappbuildBranch]], doGenerateSubmoduleConfigurations: false, submoduleCfg: [], userRemoteConfigs: [[credentialsId: gitCredId, url: 'git@github.ibm.com:zDevOps-Acceleration/dbb-zappbuild.git']]])
+			checkout([$class: 'GitSCM', branches: [[name: 'db2BindBuildReportRecord']], doGenerateSubmoduleConfigurations: false, submoduleCfg: [], userRemoteConfigs: [[credentialsId: gitCredId, url: 'git@github.com:dennis-behm/dbb-zappbuild.git']]])
+
+		}
+        dir (genappDir) {
+			checkout([$class: 'GitSCM', branches: [[name: genappBranch]], doGenerateSubmoduleConfigurations: false, submoduleCfg: [], userRemoteConfigs: [[credentialsId: gitCredId, url: 'git@github.ibm.com:zDevOps-Acceleration/genapp.git']]])
+		}
+	}
+    
+	stage("Build & UnitTest") {
+	    // -Dlog4j.configurationFile=file:/var/dbb/v1.0.9.ifix1/conf/log4j2.properties
+
+	  
+	    sh "/usr/lpp/dbb/v1r0/bin/groovyz ${dbbZappbuildDir}/build.groovy --sourceDir ${WORKSPACE}/${genappDir} --workDir ${workOutoutDir} --hlq JENKINS.ZDAT.GENAPP --logEncoding UTF-8 --application genapp --runzTests --verbose --impactBuild --propFiles /var/dbb/dbb-zappbuild-config/build.properties,/var/dbb/dbb-zappbuild-config/datasets.properties,/var/dbb/dbb-zappbuild-config/test.properties"
+
+		// some test
+	    //sh "/usr/lpp/dbb/v1r0/bin/groovyz /u/dbehm/test/dbb-zappbuild/build.groovy --sourceDir ${WORKSPACE}/${genappDir} --workDir ${workOutoutDir} --hlq JENKINS.ZDAT.GENAPP --logEncoding UTF-8 --application genapp --runzTests --verbose --impactBuild --propFiles /var/dbb/dbb-zappbuild-config/build.properties,/var/dbb/dbb-zappbuild-config/datasets.properties,/var/dbb/dbb-zappbuild-config/test.properties"
+
+		
+		sh "Xalan -o ${WORKSPACE}/work/junit.xml ${WORKSPACE}/work/*/*.zunit.report.log /var/dbb/extensions/zunit2junit/AZUZ2J30.xsl"
+		
+		dir ("${WORKSPACE}/work") {
+	    archiveArtifacts allowEmptyArchive: true, 
+											artifacts: '*/*.log,*.log,*/*.json,*/*.html',  
+											excludes: '*clist', 
+											onlyIfSuccessful: false
+	    
+	    junit 'junit.xml'
+		    
+		}
+		
+	}	
+}
