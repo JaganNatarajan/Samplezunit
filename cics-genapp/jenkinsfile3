@@ -35,7 +35,7 @@ def buildVerbose = verbose ? '-v' : ''
 // Groovyz
 def groovyz = '/u/DMJTA1/dbb113/bin/groovyz'
 // def zAppBuild = '/u/DMJTA1/zAppBuild/test/Jt-atkins-dbb-zappbuild1'
-def zAppBuild =  '${WORKSPACE}/zAppBuild'
+def zAppBuild =  'zAppBuild'
  
 def zApp = 'cics-genapp'
 def BuildType = 'impactBuild'
