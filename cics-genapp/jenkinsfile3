@@ -78,9 +78,6 @@ node (label: zOsAgentLabel ) {
                         def scmVars =
                             checkout([$class: 'GitSCM', branches: [[name: zAppbuildGitBranch]],
                               doGenerateSubmoduleConfigurations: false,
-                              extensions: [
-                                       [$class: 'SparseCheckoutPaths',  sparseCheckoutPaths:[[$class:'SparseCheckoutPath', path:'zAppBuild/']]]
-                                    ],
                               submoduleCfg: [],
                             userRemoteConfigs: [[credentialsId: 'SC47SSH', 
                                 url: srcBuildRepo,
